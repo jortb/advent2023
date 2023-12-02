@@ -1,5 +1,5 @@
 cur_dir = @__DIR__
-test = true
+test = false
 part2 = true
 
 if test
@@ -40,14 +40,17 @@ function AdventOfCode(s)
     #B= vcat(results,[1.0 2.0])
     for line in  split_string
         myregex = r"(one|two|three|four|five|six|seven|eight|nine|\d)" 
-        matches = eachmatch(myregex,line,overlap=false)
+        matches = eachmatch(myregex,line,overlap=true)
         found_text_digits = Dict()
+        first_num = nothing
+        last_num = nothing
+
         for match in matches 
-            print(match)
-            print(match.match)
+            #print(match)
+            #print(match.match)
             digit_txt = match.match
-            print(match.offset)
-            print(length(match.match))
+            #print(match.offset)
+            #print(length(match.match))
             start_idx = match.offset
             end_idx = start_idx + length(match.match)
             char = digit_txt[1]
@@ -72,28 +75,31 @@ function AdventOfCode(s)
             elseif occursin("nine", digit_txt)
                 digit = 9
             end
-            found_text_digits[start_idx] = digit
-            digit_str = string(digit)
-            test = line[start_idx:end_idx-1] 
+            #found_text_digits[start_idx] = digit
+            #digit_str = string(digit)
+            #test = line[start_idx:end_idx-1] 
             #line[start_idx:end_idx-1] = "TES"
-            
+            if isnothing(first_num)
+                first_num = digit
+            end
+            last_num = digit
         end
         #global R
         #print(line)
-        first_num = nothing
-        first_idx = -1
-        last_num = nothing
-        last_idx = -1
-        idx = 0
-        for char in line
-            if isdigit(char)
-                if isnothing(first_num)
-                    first_num = parse(Int, char)
-                end
-                last_num = parse(Int, char)
-            end
-            idx += 1
-        end
+        #first_num = nothing
+        #first_idx = -1
+        #last_num = nothing
+        #last_idx = -1
+        #idx = 0
+        #for char in line
+        #    if isdigit(char)
+        #        if isnothing(first_num)
+        #            first_num = parse(Int, char)
+        #        end
+        #        last_num = parse(Int, char)
+        #    end
+        #    idx += 1
+        #end
         #append!(results,(first_num, last_num))
         #push!(results,(first_num, last_num))
         new_row = [10first_num  last_num]
