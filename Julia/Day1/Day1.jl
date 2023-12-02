@@ -2,22 +2,7 @@ cur_dir = @__DIR__
 test = false
 part2 = true
 
-if test
-    if part2
-        filename ="test2.txt"
-    else
-        filename ="test.txt"
-    end
-else
-    filename ="input.txt"
-end
 
-filepath = joinpath(cur_dir,filename)
-
-
-f = open(filepath, "r")
-# read entire file into a string
-s = read(f, String)  
 
 function AdventOfCode(s)
     #s = replace(s,"one" => 1)
@@ -39,7 +24,11 @@ function AdventOfCode(s)
     #A= [results;[1.0 2.0]]
     #B= vcat(results,[1.0 2.0])
     for line in  split_string
-        myregex = r"(one|two|three|four|five|six|seven|eight|nine|\d)" 
+        if part2
+            myregex = r"(one|two|three|four|five|six|seven|eight|nine|\d)" 
+        else
+            myregex = r"(\d)" 
+        end
         matches = eachmatch(myregex,line,overlap=true)
         found_text_digits = Dict()
         first_num = nothing
@@ -110,7 +99,26 @@ function AdventOfCode(s)
     return R
 end
 
+#Define file name based on wether it is a test and wether it is part2.
+if test
+    if part2
+        filename ="test2.txt"
+    else
+        filename ="test.txt"
+    end
+else
+    filename ="input.txt"
+end
+# Get the absolute file path
+filepath = joinpath(cur_dir,filename)
+# Open the file
+f = open(filepath, "r")
+# read entire file into a string
+s = read(f, String)  
+# Get the resulting digits
 R = AdventOfCode(s)
+# Sum the resulting digits
 result = sum(R)
+
 print(result)
 close(f)
