@@ -79,17 +79,22 @@ function AdventOfCode(s,part2,debug=false)
             time_ms = Int(row_csv_data["Time"][idx])
             distance_to_beat = row_csv_data["Distance"][idx]
 
-            distance_travelled = zeros(1,time_ms)
-            for i in range(1,time_ms-1)
-                speed = Float64(i)
-                distance = speed * (time_ms-i)
-                distance_travelled[1,i] = distance
-                if debug print("Distance travelled by getting to speed " * string(speed) * " is : " * string(distance)*".\r\n") end
+            
+            speed = range(1,time_ms,time_ms)
+            traveltime = range(time_ms-1,0,time_ms)
+            distance_travelled = speed  .* traveltime
+            if debug
+                distance_travelled_check = zeros(time_ms)
+                for i in range(1,time_ms-1)
+                    #speed = i#Float64(i)
+                    #distance = 
+                    distance_travelled[i] = Float64(i * (time_ms-i))
+                    if debug print("Distance travelled by getting to speed " * string(i) * " is : " * string(distance)*".\r\n") end
+                end
+                diff = -distance_travelled[:] .+ distance_travelled2
+                total_error = sum(diff)
             end
-            faster_mask = zeros(1,time_ms)
-            faster_indices = distance_travelled.>distance_to_beat
-            faster_mask[faster_indices] .= 1.0
-            my_score = sum(faster_mask)
+            my_score = length(distance_travelled[distance_travelled.>distance_to_beat])
             if debug print("Number of ways to be faster : " * string(my_score) * ".\r\n") end
             scores = [scores my_score]
         end
