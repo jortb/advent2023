@@ -74,27 +74,16 @@ function AdventOfCode(s,part2,debug=false)
     if haskey(row_csv_data,"Time") && haskey(row_csv_data,"Distance")
         nr_games = length(row_csv_data["Time"])
 
-        
         for idx in range(1,nr_games)
             time_ms = Int(row_csv_data["Time"][idx])
             distance_to_beat = row_csv_data["Distance"][idx]
 
-            
             speed = range(1,time_ms,time_ms)
             traveltime = range(time_ms-1,0,time_ms)
             distance_travelled = speed  .* traveltime
-            if debug
-                distance_travelled_check = zeros(time_ms)
-                for i in range(1,time_ms-1)
-                    #speed = i#Float64(i)
-                    #distance = 
-                    distance_travelled[i] = Float64(i * (time_ms-i))
-                    if debug print("Distance travelled by getting to speed " * string(i) * " is : " * string(distance)*".\r\n") end
-                end
-                diff = -distance_travelled[:] .+ distance_travelled2
-                total_error = sum(diff)
-            end
-            my_score = length(distance_travelled[distance_travelled.>distance_to_beat])
+            #my_score = length(distance_travelled[distance_travelled.>distance_to_beat])
+            #my_score = sum(i > distance_to_beat for i in distance_travelled)
+            my_score = sum(x->x>distance_to_beat, distance_travelled)
             if debug print("Number of ways to be faster : " * string(my_score) * ".\r\n") end
             scores = [scores my_score]
         end
