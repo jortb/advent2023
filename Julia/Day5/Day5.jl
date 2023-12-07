@@ -22,40 +22,25 @@ function LoadData(test,part2)
     return s
 end
 
-function UpdateMapping(map_content,max_seed,current_mapping,debug=false)
+function UpdateSeedWithMapping(map_content,current_seed,debug=false)
     # Winning numbers
     map_matches = eachmatch(r"(\d+)\s+(\d+)\s+(\d+)\s+" ,map_content,overlap=false)
-    
-    for i in range(1,length(current_mapping)-1)
-        if i !=  current_mapping[i+1]
-            print("PROBLEMSSS")
-        end
-    end
-
     for map_match in map_matches
         dst_start = parse(Int,map_match.captures[1]) # Destination needs to be 0-indexed
         src_start = parse(Int,map_match.captures[2]) # The source needs to be 1-indexed
-        src_start_one_index = src_start + 1
-        src_start_one_index = min(src_start_one_index,max_seed)
-        
-        src_check = current_mapping[src_start_one_index]
         count = parse(Int,map_match.captures[3])
-        if debug print("Capture1 : " * string(mapp) * "\r\n") end
-        max_count = src_start+count
-        if src_start_one_index <= max_seed
-            if max_count > max_seed
-                lcount = Int(count - (max_count-max_seed))
-            else
-                lcount = count
-            end
-            src_ii = range(src_start_one_index,nothing,lcount)
-            dst_ii = range(dst_start,nothing,lcount)
-
-            current_mapping[src_ii] = dst_ii
-        else
-            print("ERROR")
+        #
+        src_start_one_index = src_start + 1
+        src_end_one_index = src_start_one_index + count
+        #
+        if current_seed >= src_start_one_index && current_seed < src_end_one_index
+            offset = dst_start - src_start
+            new_seed = current_seed + offset
+            return new_seed
         end
     end
+
+    return -1
 end
 
 function AdventOfCode(s,part2,debug=false)
@@ -64,52 +49,25 @@ function AdventOfCode(s,part2,debug=false)
     for mm in eachmatch(r"(\d+)\s*" ,m.captures[1],overlap=false)
         number = parse(Int,mm.captures[1])
         push!(seeds,number)
-        #seeds = [seeds number]
     end
-    max_seed = maximum(seeds)
-    #
-    seed_to_soil = collect( 0:max_seed)
     # Winning numbers
     matches = eachmatch(r"([\w]+)-to-([\w]+)\s+map:\s+([\d\s]+)" ,s,overlap=false)
 
-    mappings = [seed_to_soil]
-    idx = 1
-    for match in matches
-        print("Match number : " *string(idx)*"\r\n")
-        map_src = match.captures[1]
-        print("Capture1 : " * map_src * "\r\n")
-        map_dst = match.captures[2]
-        print("Capture2 : " * map_dst * "\r\n")
-        map_content = match.captures[3]
-        print("Capture3 : " * map_content * "\r\n")
-        
-        current_mapping = mappings[idx]
-        current_max = length(current_mapping)
-        UpdateMapping(map_content,current_max,current_mapping)
-        new_max = maximum(current_mapping)
-        next_mapping = collect( 0:new_max)
-        push!(mappings,next_mapping)
-        idx += 1
-        #if idx ==6
-        #    break
-        #end
-        #print("Current mapping:\r\n")
-        print(current_mapping)
-        print("\r\n")
-    
-    end
-
     scores = [1e9]
-    print("number of mappings : " * string(length(mappings))*"\r\n")
     for seed in seeds
-        next_idx = Int(seed)+1
-        for mapping in mappings
-            #idx_zero_based = next_idx-1
-            #print("Next mapping : "* string(idx_zero_based) * "\r\n")
-            next_idx = Int(mapping[next_idx])+1
+        next_idx_faster = Int(seed)+1
+        for match in matches
+            if debug print("Next mapping : "* string(next_idx_faster-1) * "\r\n") end
+            map_content = match.captures[3]
+            #print("Capture3 : " * map_content * "\r\n")
+            results = UpdateSeedWithMapping(map_content,next_idx_faster)
+            if results > 0
+                next_idx_faster = results
+            end
+            
         end
-        idx_zero_based = next_idx-1
-        print("Final mapping : "* string(idx_zero_based) * "\r\n")
+        idx_zero_based = next_idx_faster-1
+        if debug print("Final mapping : "* string(idx_zero_based) * "\r\n") end
         scores = [scores idx_zero_based]
     end
     
