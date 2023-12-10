@@ -1,6 +1,6 @@
 cur_dir = @__DIR__
 test = false
-part2 = false
+part2 = true
 
 
 
@@ -50,11 +50,23 @@ function AdventOfCode(s,part2,debug=false)
         number = parse(Int,mm.captures[1])
         push!(seeds,number)
     end
+    if part2
+        all_seeds = Int64[]
+        for i in range(1,length(seeds)/2)
+            ii = Int(2 * i)-1
+            start_idx = Int(seeds[ii])
+            nr_idxs = Int(seeds[ii+1])
+            indices = range(start_idx,nothing,nr_idxs)
+            append!(all_seeds,collect(indices))
+        end
+    else
+        all_seeds = seeds
+    end
     # Winning numbers
     matches = eachmatch(r"([\w]+)-to-([\w]+)\s+map:\s+([\d\s]+)" ,s,overlap=false)
 
     scores = [1e9]
-    for seed in seeds
+    for seed in all_seeds
         next_idx_faster = Int(seed)+1
         for match in matches
             if debug print("Next mapping : "* string(next_idx_faster-1) * "\r\n") end
