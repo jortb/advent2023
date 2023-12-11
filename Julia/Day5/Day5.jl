@@ -1,6 +1,6 @@
 cur_dir = @__DIR__
 test = false
-part2 = false
+part2 = true
 
 mutable struct MappingRow
     src_start::Int
@@ -33,6 +33,33 @@ function LoadData(test,part2)
     #
     close(f)
     return s
+end
+
+function CheckSeedNumberValid(seed_nr,seed_start_indices,seed_end_indices)
+    for i in range(1,length(seed_start_indices))
+        if seed_nr >= seed_start_indices[i] && seed_nr <= seed_end_indices[i]
+            return true
+        end
+    end
+    return false
+end
+
+function UpdateEndNumberWithMapping(mapping_type,end_number,debug=false)
+    for mapping_row in reverse(mapping_type)
+        src_start   = mapping_row.dst_start     # Reverse Mapping
+        dst_start   = mapping_row.src_start     # Reverse Mapping
+        count       = mapping_row.count
+        #
+        src_start_one_index = src_start + 1
+        src_end_one_index = src_start_one_index + count
+        #
+        if end_number >= src_start_one_index && end_number < src_end_one_index
+            offset = dst_start - src_start
+            new_number = end_number + offset
+            return new_number
+        end
+    end
+    return -1
 end
 
 function UpdateSeedWithMapping(mapping_type,current_seed,debug=false)
@@ -174,32 +201,91 @@ function AdventOfCode(s,part2,debug=false)
         end
     end
 
-    scores = [1e9]
-    counter = 0
-    print("Started Main Loop:\r\n")
-    for i in range(1,length(seed_start_indices))
-        Threads.@threads for j in range(seed_start_indices[i],seed_end_indices[i])
-            next_idx_faster = Int(j)+1
-            for table_type in Mappings
-            #for match in matches
-                if debug print("Next mapping : "* string(next_idx_faster-1) * "\r\n") end
-                results = UpdateSeedWithMapping(table_type.mapping_type,next_idx_faster)
-                if results > 0
-                    next_idx_faster = results
+    if ! part2
+        scores = [1e9]
+        counter = 0
+        print("Started Main Loop:\r\n")
+        for i in range(1,length(seed_start_indices))
+            Threads.@threads for j in range(seed_start_indices[i],seed_end_indices[i])
+                next_idx_faster = Int(j)+1
+                for table_type in Mappings
+                #for match in matches
+                    if debug print("Next mapping : "* string(next_idx_faster-1) * "\r\n") end
+                    results = UpdateSeedWithMapping(table_type.mapping_type,next_idx_faster)
+                    if results > 0
+                        next_idx_faster = results
+                    #else
+                    #    print("Keeping the number the same\r\n")
+                    end
+                    
                 end
-                
+                idx_zero_based = next_idx_faster-1
+                if debug print("Final mapping : "* string(idx_zero_based) * "\r\n") end
+                scores = [scores idx_zero_based]
+                #counter += 1
+                #if counter > 1000000
+                #    counter = 0
+                #    print(".")
+                #end
             end
-            idx_zero_based = next_idx_faster-1
-            if debug print("Final mapping : "* string(idx_zero_based) * "\r\n") end
-            scores = [scores idx_zero_based]
-            #counter += 1
-            #if counter > 1000000
-            #    counter = 0
-            #    print(".")
-            #end
+            #print("Seed Range done : "* string(seed_start_indices[i]))
+            #print("\r\n")
         end
-        #print("Seed Range done : "* string(seed_start_indices[i]))
-        #print("\r\n")
+    end
+
+    reverse_mapping = reverse(Mappings)
+    solution_found = false
+    counter = 0
+    next_print_count = 1000000
+    while ! solution_found
+        next_idx_faster = counter
+        for table_type in reverse_mapping
+            results = UpdateEndNumberWithMapping(table_type.mapping_type,next_idx_faster)
+            if results > 0
+                if debug 
+                    check = UpdateSeedWithMapping(table_type.mapping_type,results)
+                    valid_reverse = check == next_idx_faster
+                else
+                    valid_reverse = true
+                end
+
+                if valid_reverse
+                    next_idx_faster = results
+                    if debug print("Previous mapping : " *string(next_idx_faster)*"\r\n") end
+                else
+                    if debug print("Mismatch in reverse table") end
+                end
+            else
+                next_idx_faster = next_idx_faster # Keep it the same
+                if debug  print("Previous mapping : " *string(next_idx_faster)*"(the same)\r\n") end
+            end
+        end
+        
+        this_number_is_a_valid_seed = CheckSeedNumberValid(next_idx_faster,seed_start_indices,seed_end_indices)
+        if this_number_is_a_valid_seed
+            print("Found result at end location: " *string(counter-1)*"\r\n")
+            print("Found result at seed number : " *string(next_idx_faster-1)*"\r\n")
+            scores = [counter-1]
+            solution_found = true
+            break
+        end
+        counter += 1
+        if debug  print("Counter increasing to : " *string(counter)*"\r\n") end
+        if counter % next_print_count ==0
+            if counter % (10*next_print_count) == 0
+                if counter % (100*next_print_count) == 0
+                    print(":\r\n")
+                else
+                    print(":")
+                end
+            else
+                print(".")
+            end
+        end
+        if counter > 379811651+100
+            print("Failed to find\r\n")
+            break
+        end
     end
     
 
